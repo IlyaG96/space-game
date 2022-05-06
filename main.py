@@ -1,7 +1,6 @@
 import random
 import asyncio
 import curses
-import sys
 
 from curses_tools import draw_frame, read_controls, get_frame_size
 
@@ -77,36 +76,6 @@ async def animate_spaceship(canvas,
         await asyncio.sleep(0)
 
 
-async def fire(canvas, start_row, start_column, rows_speed=-0.0001, columns_speed=0):
-    """Display animation of gun shot, direction and speed can be specified."""
-
-    row, column = start_row, start_column
-
-    canvas.addstr(round(row), round(column), '*')
-    await asyncio.sleep(0)
-
-    canvas.addstr(round(row), round(column), 'O')
-    await asyncio.sleep(0)
-    canvas.addstr(round(row), round(column), ' ')
-
-    row += rows_speed
-    column += columns_speed
-
-    symbol = '-' if columns_speed else '|'
-
-    rows, columns = canvas.getmaxyx()
-    max_row, max_column = rows - 1, columns - 1
-
-    curses.beep()
-
-    while 0 < row < max_row and 0 < column < max_column:
-        canvas.addstr(round(row), round(column), symbol)
-        await asyncio.sleep(0)
-        canvas.addstr(round(row), round(column), ' ')
-        row += rows_speed
-        column += columns_speed
-
-
 def draw(canvas):
     curses.curs_set(False)
     max_row, max_column = curses.window.getmaxyx(canvas)
@@ -130,10 +99,6 @@ def draw(canvas):
               end=random.randint(3000, 6000))
         for _ in range(stars_quantity)
     ]
-    coroutines.append(fire(canvas,
-                           int(max_row / 2),
-                           int(max_column / 2),
-                           ))
 
     coroutines.append(animate_spaceship(canvas,
                                         max_row,
