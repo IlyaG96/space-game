@@ -73,10 +73,7 @@ async def animate_spaceship(canvas,
             position_column = 1
         else:
             position_column = preposition_column
-     #   if preposition_column <= 0:
-     #       position_column = 0
-     #   else:
-     #       position_column = preposition_column
+
         await asyncio.sleep(0)
 
 
@@ -121,7 +118,7 @@ def draw(canvas):
     with open(file='./animations/rocket/rocket_frame_two.txt') as file:
         frame2 = file.read()
     spaceship_size_in_cols, spaceship_size_in_rows = get_frame_size(frame1)
-
+    stars_quantity = max_row * max_column // 100
     coroutines = [
         blink(canvas,
               row=random.choice(range(1, max_row - 1)),
@@ -131,7 +128,7 @@ def draw(canvas):
               growth=random.randint(5000, 10000),
               shine=random.randint(5000, 10000),
               end=random.randint(3000, 6000))
-        for _ in range(200)
+        for _ in range(stars_quantity)
     ]
     coroutines.append(fire(canvas,
                            int(max_row / 2),
