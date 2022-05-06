@@ -122,6 +122,5 @@ def draw(canvas):
 
 
 if __name__ == '__main__':
-    curses.TIC_TIMEOUT = 0.1
     curses.update_lines_cols()
     curses.wrapper(draw)
