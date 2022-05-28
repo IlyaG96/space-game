@@ -1,6 +1,8 @@
 import random
 import asyncio
 import curses
+import time
+from itertools import cycle
 
 from curses_tools import draw_frame, read_controls, get_frame_size
 
@@ -40,20 +42,14 @@ async def animate_spaceship(canvas,
                             frame2,
                             spaceship_size_in_rows,
                             spaceship_size_in_cols):
-    while True:
-        draw_frame(canvas, position_row, position_column, frame1, negative=False)
-        for _ in range(1000):
-            await asyncio.sleep(0)
 
-        draw_frame(canvas, position_row, position_column, frame1, negative=True)
-        await asyncio.sleep(0)
+    animations = [
+        frame1,
+        frame2,
+    ]
+    for frame in cycle(animations):
 
-        draw_frame(canvas, position_row, position_column, frame2, negative=False)
-        for _ in range(1000):
-            await asyncio.sleep(0)
-
-        draw_frame(canvas, position_row, position_column, frame2, negative=True)
-        await asyncio.sleep(0)
+        draw_frame(canvas, position_row, position_column, frame, False)
 
         delta_row, delta_column, space = read_controls(canvas)
         preposition_row = position_row + delta_row
@@ -74,11 +70,16 @@ async def animate_spaceship(canvas,
             position_column = preposition_column
 
         await asyncio.sleep(0)
+        # erases previous frame
+        draw_frame(canvas,
+                   preposition_row - delta_row,
+                   preposition_column - delta_column,
+                   frame, True)
 
 
 def draw(canvas):
     curses.curs_set(False)
-    max_row, max_column = curses.window.getmaxyx(canvas)
+    screen_height, screen_width = curses.window.getmaxyx(canvas)
     canvas.border()
     canvas.nodelay(True)
 
@@ -87,37 +88,38 @@ def draw(canvas):
     with open(file='./animations/rocket/rocket_frame_two.txt') as file:
         frame2 = file.read()
     spaceship_size_in_cols, spaceship_size_in_rows = get_frame_size(frame1)
-    stars_quantity = max_row * max_column // 100
+    stars_quantity = screen_height * screen_width // 100
     coroutines = [
         blink(canvas,
-              row=random.choice(range(1, max_row - 1)),
-              column=random.choice(range(1, max_column - 1)),
+              row=random.choice(range(1, screen_height - 1)),
+              column=random.choice(range(1, screen_width - 1)),
               symbol=random.choice('+*.:'),
-              start=random.randint(20000, 40000),
-              growth=random.randint(5000, 10000),
-              shine=random.randint(5000, 10000),
-              end=random.randint(3000, 6000))
+              start=random.randint(2, 4),
+              growth=random.randint(5, 10),
+              shine=random.randint(5, 10),
+              end=random.randint(3, 6))
         for _ in range(stars_quantity)
     ]
 
     coroutines.append(animate_spaceship(canvas,
-                                        max_row,
-                                        max_column,
-                                        int(max_row / 2),
-                                        int(max_column / 2),
+                                        screen_height,
+                                        screen_width,
+                                        int(screen_height / 2),
+                                        int(screen_width / 2),
                                         frame1=frame1,
                                         frame2=frame2,
                                         spaceship_size_in_rows=spaceship_size_in_rows,
                                         spaceship_size_in_cols=spaceship_size_in_cols))
 
     while True:
+        time.sleep(0.1)
         canvas.refresh()
         for coroutine in coroutines.copy():
             try:
                 coroutine.send(None)
             except StopIteration:
                 coroutines.remove(coroutine)
-        if len(coroutines) == 0:
+        if not coroutines:
             break
 
 
