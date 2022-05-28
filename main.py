@@ -38,17 +38,17 @@ async def animate_spaceship(canvas,
                             max_column,
                             position_row,
                             position_column,
+                            screen_border_distance,
                             frame1,
                             frame2,
                             spaceship_size_in_rows,
-                            spaceship_size_in_cols):
-
-    animations = [
+                            spaceship_size_in_cols,):
+    frames = [
         frame1,
         frame2,
     ]
-    for frame in cycle(animations):
-
+    for frame in cycle(frames):
+        # draw frame
         draw_frame(canvas, position_row, position_column, frame, False)
 
         delta_row, delta_column, space = read_controls(canvas)
@@ -63,7 +63,7 @@ async def animate_spaceship(canvas,
             position_row = preposition_row
 
         if preposition_column >= max_column - spaceship_size_in_cols:
-            position_column = max_column - (spaceship_size_in_cols / 2) - 1
+            position_column = max_column - (spaceship_size_in_cols / 2) - screen_border_distance
         elif preposition_column <= 0:
             position_column = 1
         else:
@@ -82,21 +82,24 @@ def draw(canvas):
     screen_height, screen_width = curses.window.getmaxyx(canvas)
     canvas.border()
     canvas.nodelay(True)
+    screen_border_distance = 1  # minimal distance between object and screen border
+    stars_density = 100  # less is more stars
+    game_speed = 0.1  # delay (pause?) between coroutines, less is higher game speed
 
     with open(file='./animations/rocket/rocket_frame_one.txt') as file:
         frame1 = file.read()
     with open(file='./animations/rocket/rocket_frame_two.txt') as file:
         frame2 = file.read()
     spaceship_size_in_cols, spaceship_size_in_rows = get_frame_size(frame1)
-    stars_quantity = screen_height * screen_width // 100
+    stars_quantity = screen_height * screen_width // stars_density
     coroutines = [
         blink(canvas,
-              row=random.choice(range(1, screen_height - 1)),
-              column=random.choice(range(1, screen_width - 1)),
+              row=random.choice(range(1, screen_height - screen_border_distance)),
+              column=random.choice(range(1, screen_width - screen_border_distance)),
               symbol=random.choice('+*.:'),
-              start=random.randint(2, 4),
-              growth=random.randint(5, 10),
-              shine=random.randint(5, 10),
+              start=random.randint(3, 6),
+              growth=random.randint(8, 16),
+              shine=random.randint(8, 16),
               end=random.randint(3, 6))
         for _ in range(stars_quantity)
     ]
@@ -106,13 +109,14 @@ def draw(canvas):
                                         screen_width,
                                         int(screen_height / 2),
                                         int(screen_width / 2),
+                                        screen_border_distance,
                                         frame1=frame1,
                                         frame2=frame2,
                                         spaceship_size_in_rows=spaceship_size_in_rows,
                                         spaceship_size_in_cols=spaceship_size_in_cols))
 
     while True:
-        time.sleep(0.1)
+        time.sleep(game_speed)
         canvas.refresh()
         for coroutine in coroutines.copy():
             try:
