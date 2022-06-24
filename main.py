@@ -65,7 +65,6 @@ async def animate_spaceship(canvas,
             position_column = 1
         else:
             position_column = preposition_column
-
         await asyncio.sleep(0)
         # erases previous frame
         draw_frame(canvas,
@@ -87,6 +86,7 @@ def draw(canvas):
     for frame_filename in os.listdir('./animations/rocket'):
         with open(file=f'./animations/rocket/{frame_filename}', mode='r') as file:
             frame = file.read()
+            rocket_frames.append(frame)
             rocket_frames.append(frame)
 
     spaceship_size_in_cols, spaceship_size_in_rows = get_frame_size(next(iter(rocket_frames)))
@@ -112,10 +112,7 @@ def draw(canvas):
                                         frames=rocket_frames,
                                         spaceship_size_in_rows=spaceship_size_in_rows,
                                         spaceship_size_in_cols=spaceship_size_in_cols))
-
     while True:
-        time.sleep(game_speed)
-        canvas.refresh()
         for coroutine in coroutines.copy():
             try:
                 coroutine.send(None)
@@ -123,6 +120,8 @@ def draw(canvas):
                 coroutines.remove(coroutine)
         if not coroutines:
             break
+        canvas.refresh()
+        time.sleep(game_speed)
 
 
 if __name__ == '__main__':
