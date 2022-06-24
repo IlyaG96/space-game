@@ -1,3 +1,4 @@
+import os
 import random
 import asyncio
 import curses
@@ -39,14 +40,10 @@ async def animate_spaceship(canvas,
                             position_row,
                             position_column,
                             screen_border_distance,
-                            frame1,
-                            frame2,
+                            frames,
                             spaceship_size_in_rows,
                             spaceship_size_in_cols,):
-    frames = [
-        frame1,
-        frame2,
-    ]
+
     for frame in cycle(frames):
         # draw frame
         draw_frame(canvas, position_row, position_column, frame, False)
@@ -78,19 +75,21 @@ async def animate_spaceship(canvas,
 
 
 def draw(canvas):
+    rocket_frames = []
     curses.curs_set(False)
     screen_height, screen_width = curses.window.getmaxyx(canvas)
     canvas.border()
     canvas.nodelay(True)
     screen_border_distance = 1  # minimal distance between object and screen border
     stars_density = 100  # less is more stars
-    game_speed = 0.1  # delay (pause?) between coroutines, less is higher game speed
+    game_speed = 0.1  # delay between coroutines, less is higher game speed
 
-    with open(file='./animations/rocket/rocket_frame_one.txt') as file:
-        frame1 = file.read()
-    with open(file='./animations/rocket/rocket_frame_two.txt') as file:
-        frame2 = file.read()
-    spaceship_size_in_cols, spaceship_size_in_rows = get_frame_size(frame1)
+    for frame_filename in os.listdir('./animations/rocket'):
+        with open(file=f'./animations/rocket/{frame_filename}', mode='r') as file:
+            frame = file.read()
+            rocket_frames.append(frame)
+
+    spaceship_size_in_cols, spaceship_size_in_rows = get_frame_size(next(iter(rocket_frames)))
     stars_quantity = screen_height * screen_width // stars_density
     coroutines = [
         blink(canvas,
@@ -110,8 +109,7 @@ def draw(canvas):
                                         int(screen_height / 2),
                                         int(screen_width / 2),
                                         screen_border_distance,
-                                        frame1=frame1,
-                                        frame2=frame2,
+                                        frames=rocket_frames,
                                         spaceship_size_in_rows=spaceship_size_in_rows,
                                         spaceship_size_in_cols=spaceship_size_in_cols))
 
