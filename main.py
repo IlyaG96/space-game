@@ -51,20 +51,18 @@ async def animate_spaceship(canvas,
         delta_row, delta_column, space = read_controls(canvas)
         preposition_row = position_row + delta_row
         preposition_column = position_column + delta_column
+        distance_to_border = max_row - 2 * spaceship_size_in_rows
 
-        if preposition_row >= max_row - 2 * spaceship_size_in_rows:
-            position_row = max_row - 2 * spaceship_size_in_rows
-        elif preposition_row <= 0:
+        if preposition_row <= 0:
             position_row = 1
         else:
-            position_row = preposition_row
+            position_row = min(preposition_row, distance_to_border)
 
         if preposition_column >= max_column - spaceship_size_in_cols:
             position_column = max_column - (spaceship_size_in_cols / 2) - screen_border_distance
-        elif preposition_column <= 0:
-            position_column = 1
         else:
-            position_column = preposition_column
+            position_column = max(preposition_column, 1)
+
         await asyncio.sleep(0)
         # erases previous frame
         draw_frame(canvas,
