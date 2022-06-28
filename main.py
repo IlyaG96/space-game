@@ -39,37 +39,44 @@ async def animate_spaceship(canvas,
                             max_column,
                             position_row,
                             position_column,
-                            screen_border_distance,
+                            border_distance,
                             frames,
-                            spaceship_size_in_rows,
-                            spaceship_size_in_cols):
+                            spaceship_in_rows,
+                            spaceship_in_cols):
     for frame in cycle(frames):
         # draw frame
-        draw_frame(canvas, position_row, position_column, frame, False)
+        draw_frame(
+            canvas,
+            position_row,
+            position_column,
+            frame,
+            False
+        )
 
         delta_row, delta_column, space = read_controls(canvas)
         preposition_row = position_row + delta_row
         preposition_column = position_column + delta_column
-        distance_to_border = max_row - 2 * spaceship_size_in_rows
+        distance_to_border = max_row - 2 * spaceship_in_rows
 
         if preposition_row <= 0:
             position_row = 1
         else:
             position_row = min(preposition_row, distance_to_border)
-        if preposition_column >= max_column - spaceship_size_in_cols:
-            position_column = max_column - \
-                              (spaceship_size_in_cols / 2) - \
-                              screen_border_distance
+        if preposition_column >= max_column - spaceship_in_cols:
+            position_column = \
+                max_column - (spaceship_in_cols / 2) - border_distance
         else:
             position_column = max(preposition_column, 1)
 
         await asyncio.sleep(0)
         # erases previous frame
-        draw_frame(canvas,
-                   preposition_row - delta_row,
-                   preposition_column - delta_column,
-                   frame,
-                   True)
+        draw_frame(
+            canvas,
+            preposition_row - delta_row,
+            preposition_column - delta_column,
+            frame,
+            True
+        )
 
 
 def draw(canvas):
@@ -78,7 +85,7 @@ def draw(canvas):
     screen_height, screen_width = curses.window.getmaxyx(canvas)
     canvas.border()
     canvas.nodelay(True)
-    screen_border_distance = 1  # min distance between object and screen border
+    border_distance = 1  # min distance between object and screen border
     stars_density = 100  # less is more stars
     game_speed = 0.1  # delay between coroutines, less is higher game speed
 
@@ -86,19 +93,18 @@ def draw(canvas):
         with open(file=f'./animations/rocket/{frame_filename}',
                   mode='r') as file:
             frame = file.read()
-            rocket_frames.append(frame)
-            rocket_frames.append(frame)
+        rocket_frames.extend([frame, frame])
 
-    spaceship_size_in_cols, spaceship_size_in_rows = \
+    spaceship_in_cols, spaceship_in_rows = \
         get_frame_size(next(iter(rocket_frames)))
     stars_quantity = screen_height * screen_width // stars_density
     coroutines = [
         blink(
             canvas,
-            row=random.choice(range(1,
-                                    screen_height - screen_border_distance)),
-            column=random.choice(range(1,
-                                       screen_width - screen_border_distance)),
+            row=random.choice(
+                range(1, screen_height - border_distance)),
+            column=random.choice(
+                range(1, screen_width - border_distance)),
             symbol=random.choice('+*.:'),
             start=random.randint(3, 6),
             growth=random.randint(8, 16),
@@ -114,10 +120,10 @@ def draw(canvas):
             screen_width,
             int(screen_height / 2),
             int(screen_width / 2),
-            screen_border_distance,
+            border_distance,
             frames=rocket_frames,
-            spaceship_size_in_rows=spaceship_size_in_rows,
-            spaceship_size_in_cols=spaceship_size_in_cols))
+            spaceship_in_rows=spaceship_in_rows,
+            spaceship_in_cols=spaceship_in_cols))
     while True:
         for coroutine in coroutines.copy():
             try:
